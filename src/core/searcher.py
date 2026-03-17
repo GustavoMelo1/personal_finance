@@ -17,3 +17,20 @@ def wishes():
         print("Wishes dont exist yet. Please add some wishes first.")
 
     wishes()
+
+def news():
+    try:
+        with open('data/financialmarketnews.json', 'r', encoding='utf-8') as arquivo:
+            dados = json.load(arquivo)
+            
+        print("Searching news...\n")
+    
+        for item in dados['news']:
+            print(f"words_for_search: {', '.join(item['words_for_search'])}")
+            print(f"news_sites: {', '.join(item['news_sites'])}")
+            print("-" * 30)
+            
+    except FileNotFoundError:
+        print("News dont exist yet. Please add some news first.")
+
+    news()
