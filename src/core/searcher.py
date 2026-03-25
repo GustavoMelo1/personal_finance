@@ -1,6 +1,5 @@
 import json
-
-# Function to display wishes
+#function to display wishes
 def wishes():
     try:
         with open('data/wishes.json', 'r', encoding='utf-8') as arquivo:
@@ -32,6 +31,6 @@ def news():
     except FileNotFoundError:
         print("News dont exist yet. Please add some news first.")
 
-# Executa as funções quando o script roda
+#executes the functions when the script runs
 wishes()
 news()
