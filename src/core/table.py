@@ -39,13 +39,13 @@ def create_db():
         ''')
 
         cursor.execute('''
-        CREATE TABLE IF NOT EXISTS transactions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        date TEXT,
-        description TEXT,
-        value REAL,
-        type TEXT,
-        category TEXT
+            CREATE TABLE IF NOT EXISTS transactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT,
+                description TEXT,
+                value REAL,
+                type TEXT,
+                category TEXT
             )
         ''')
 
