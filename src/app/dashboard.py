@@ -3,14 +3,18 @@ import sys
 import os
 import plotly.express as px
 import pandas as pd
+import sqlite3
+import json
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from database.crud import balance_flow, select_investment, insert_flow
 from core.table import create_db
+from core.searcher import wishes
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 create_db()
-
 
 st.title("Fluxo de Caixa")
 st.caption("Controle Financeiro")
@@ -52,11 +56,8 @@ with column_form:
 
 with column_chart:
     st.subheader("Resumo")
-   
-    income = balance_flow()
     
-    import sqlite3
-    with sqlite3.connect('data/financas.db') as conn:
+    with sqlite3.connect(os.path.join(BASE_DIR, 'data', 'financas.db')) as conn:
         df = pd.read_sql_query("SELECT type, SUM(value) as total FROM flow GROUP BY type", conn)
     
     if not df.empty:
@@ -69,6 +70,43 @@ with column_chart:
 
 st.divider()
 st.header("Objetivos")
+
+column_wish, column_add = st.columns([2, 1])
+
+with column_wish:
+    st.subheader("Meus Desejos")
+    desejos = wishes()
+
+    if not desejos:
+        st.info("Nenhum desejo cadastrado ainda.")
+    else:
+        for desejo in desejos:
+            nome = list(desejo.keys())[0]
+            with st.container(border=True):
+                st.markdown(f"**{nome}**")
+                st.write(f"Busca: {desejo['search']}")
+                st.write(f"Preço máximo: R$ {desejo['max_value']:.2f}")
+                st.write(f"Lojas: {', '.join(desejo['store'])}")
+
+with column_add:
+    st.subheader("Adicionar Desejo")
+    nome = st.text_input("Nome")
+    busca = st.text_input("Termo de busca")
+    preco = st.number_input("Preço máximo", min_value=0.0)
+    
+    if st.button("Adicionar"):
+        novo = {
+            nome: len(desejos) + 1,
+            "search": busca,
+            "ignore": [],
+            "store": ["Amazon", "Magazine Luiza"],
+            "max_value": preco
+        }
+        desejos.append(novo)
+        with open(os.path.join(BASE_DIR, 'data', 'wishes.json'), 'w', encoding='utf-8') as f:
+            json.dump({"wishes": desejos}, f, ensure_ascii=False, indent=4)
+        st.success("Desejo adicionado!")
+        st.rerun()
 
 st.divider()
 st.header("Extrato")
