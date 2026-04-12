@@ -6,9 +6,10 @@ import pandas as pd
 import sqlite3
 import json
 
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from database.crud import balance_flow, select_investment, insert_flow
+from database.crud import balance_flow, select_investment, insert_flow, insert_investment 
 from core.table import create_db
 from core.searcher import wishes
 
@@ -111,5 +112,52 @@ with column_add:
 st.divider()
 st.header("Extrato")
 
+with sqlite3.connect(os.path.join(BASE_DIR, 'data', 'financas.db')) as conn:
+    df_extrato = pd.read_sql_query("""
+        SELECT date as Data, description as Descrição, 
+               category as Categoria, type as Tipo, 
+               value as Valor, bank as Conta
+        FROM flow 
+        ORDER BY date DESC 
+        LIMIT 10
+    """, conn)
+
+if not df_extrato.empty:
+    st.dataframe(df_extrato, use_container_width=True)
+else:
+    st.info("Nenhum lançamento ainda.")
+
 st.divider()
 st.header("Investimentos")
+
+column_investment_form, column_investment_chart = st.columns([1, 2])
+
+with column_investment_form:
+    st.subheader("Adicionar Aporte")
+    inv_date = st.date_input("Data", key="inv_date")
+    inv_institution = st.selectbox("Instituição", ["BB", "Rico", "Nubank", "XP", "Outros"])
+    inv_type = st.selectbox("Tipo", ["CDI", "Ações", "FII", "Tesouro Direto", "Outros"])
+    inv_movement = st.selectbox("Movimento", ["Aporte", "Retirada"])
+    inv_value = st.number_input("Valor", min_value=0.0, key="inv_value")
+    inv_asset = st.text_input("Ativo", placeholder="Ex: MXRF11, SELIC...")
+    
+    if st.button("Salvar Aporte"):
+        insert_investment(str(inv_date), inv_institution, inv_type, inv_movement, inv_value, inv_asset)
+        st.success("Aporte salvo!")
+
+with column_investment_chart:
+    st.subheader("Carteira")
+    investments = select_investment()
+    
+    if investments:
+        df_inv = pd.DataFrame(investments, columns=['id', 'date', 'institution', 'type', 'movement', 'value', 'asset'])
+        
+        total = df_inv[df_inv['movement'] == 'Aporte']['value'].sum()
+        st.metric("Total Investido", f"R$ {total:.2f}")
+        
+        df_grouped = df_inv.groupby('type')['value'].sum().reset_index()
+        fig_inv = px.pie(df_grouped, values='value', names='type', 
+                        title='Distribuição da Carteira')
+        st.plotly_chart(fig_inv, use_container_width=True)
+    else:
+        st.info("Nenhum investimento cadastrado ainda.")
