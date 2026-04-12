@@ -1,6 +1,8 @@
 import streamlit as st
 import sys
 import os
+import plotly.express as px
+import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -50,6 +52,20 @@ with column_form:
 
 with column_chart:
     st.subheader("Resumo")
+   
+    income = balance_flow()
+    
+    import sqlite3
+    with sqlite3.connect('data/financas.db') as conn:
+        df = pd.read_sql_query("SELECT type, SUM(value) as total FROM flow GROUP BY type", conn)
+    
+    if not df.empty:
+        fig = px.bar(df, x='type', y='total', color='type',
+                    color_discrete_map={'Income': '#1D9E75', 'Expense': '#D85A30'},
+                    labels={'type': '', 'total': 'R$'})
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("Nenhum lançamento ainda. Adiciona um gasto ou receita.")
 
 st.divider()
 st.header("Objetivos")
