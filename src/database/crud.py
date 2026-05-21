@@ -60,6 +60,30 @@ def select_investment():
     logger.info("Selected investments : ")
     return rows
 
+def insert_wish(name, search, ignore, stores, max_value):
+    with sqlite3.connect(PATH_db) as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO wishes (name, search, ignore, stores, max_value)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (name, search, ignore, stores, max_value))
+        conn.commit()
+    logger.info(f"Wish added: {name} - R${max_value}")
+
+def delete_wish(id):
+    with sqlite3.connect(PATH_db) as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM wishes WHERE id = ?", (id,))
+        conn.commit()
+    logger.info(f"Wish deleted: id {id}")
+
+def select_wish():
+    with sqlite3.connect(PATH_db) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM wishes")
+        rows = cursor.fetchall()
+    logger.info("Selected wishes")
+    return rows
 
 
 
