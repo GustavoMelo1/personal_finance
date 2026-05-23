@@ -5,36 +5,42 @@ Sistema automatizado do meu fluxo de caixa, objetivo é vincular seu sonho mater
 Trazendo melhor conforto e organização pro seu bolso...
 
 ```text
-FLUXODECAIXA_PROJECT/
+fluxodecaixa_project/
 │
-├── .venv/                  #  Local Python environment (isolated packages).
-├── .env                    #  Secret vault for API keys and sensitive tokens.
-├── .gitignore              #  Git safety filter (keeps junk and secrets out of the cloud).
-├── requirements.txt        #  Project dependencies (Pandas, Streamlit, yFinance).
-├── README.md               #  Project documentation and roadmap.
+├── .env                    # Variáveis de ambiente e segredos
+├── .gitignore             # Arquivos temporários, venv, etc.
+├── requirements.txt       # Dependências Python
+├── README.md              # Documentação e roadmap
 │
-├── data/                   # THE VAULT (Data Storage)
-│   ├── raw/                # Unprocessed bank & meal voucher (VA) CSV files.
-│   ├── financas.db         # Core SQLite database (The brain's permanent memory).
-│   └── desejos.json        # Wishlist tracking with target price thresholds.
+├── data/
+│   ├── raw/               # Extratos brutos (OFX, CSV, PDF etc.)
+│   └── financas.db        # Banco de dados principal (SQLite)
 │
-└── src/                    #  THE CORE (Source Code)
-    ├── __init__.py         # Package initializer.
-    ├── config.py           # Global settings, salary inputs, and budget limits.
+└── src/
     │
-    ├── database/           # STORAGE MANAGEMENT
-    │   ├── connection.py   # Handles SQLite database handshake.
-    │   ├── models.py       # DB Schema (Tables for Expenses, VA, and Investments).
-    │   └── crud.py         # Business logic for Creating, Reading, and Updating data.
+    ├── ingestion/
+    │   ├── __init__.py
+    │   ├── readers/
+    │   │   ├── __init__.py
+    │   │   ├── base.py         # Leitor genérico / abstrato
+    │   │   ├── ofx_reader.py   # Leitura de extrato OFX
+    │   │   ├── csv_reader.py   # Leitura de CSV
+    │   │   └── pdf_reader.py   # Leitura de PDF (se entrar depois)
+    │   ├── ingest.py          # Coordena a ingestão (ex: processa raw → banco)
+    │   └── cotacoes.py        # Pegar cotações de mercado (yFinance, B3 etc.)
     │
-    ├── core/               # THE INTELLIGENCE ENGINE
-    │   ├── etl_extratos.py # Data cleaning: sorts "Personal" vs "Meal Voucher" spend.
-    │   ├── scraper.py      # Real-time price hunter for wishlist items.
-    │   ├── investimentos.py# Asset tracker: pulls live stock and REIT (FII) data.
-    │   └── gamificacao.py  #  The RPG Engine: converts cash into "Days of Life".
+    ├── database/
+    │   ├── __init__.py
+    │   ├── connection.py      # Conexão com SQLite
+    │   ├── table.py           # Definição das tabelas (flow, investment, wishes)
+    │   └── crud.py            # Insert, select, update de dados
     │
-    └── app/                #  THE INTERFACE (Streamlit Frontend)
-        ├── dashboard.py    # Main entry point (The "Days Remaining" progress bar).
-        ├── forms.py        # Quick-entry sidebar for daily expenses.
-        ├── views.py        # Tab management: RPG, Portfolio, and Deal Radar.
-        └── utils.py        # UI helpers, currency formatting, and visual alerts.
+    ├── transform/
+    │   └── .gitkeep           # Futura pasta para transformações (dbt, etl, etc.)
+    │
+    ├── api/
+    │   ├── __init__.py
+    │   └── main.py            # API FastAPI raiz (vai expor endpoints)
+    │
+    └── app/                   # (Futuro) Frontend / app que consome a API
+        └── .gitkeep           # Frontend ainda não implementado
